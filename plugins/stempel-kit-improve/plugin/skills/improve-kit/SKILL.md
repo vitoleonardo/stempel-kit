@@ -61,6 +61,7 @@ Write `.work/improve/<YYYY-MM-DD>.md`:
 - Change: <file and the exact change>
 - Expected effect: <which metric moves, and which way>
 - Measure: <the metric to watch, and its value now>
+- Gate: <for a change to a skill's text or to routing: the live run that judges it (`tests/<skill>/run.sh`), or `ungated` if the skill has none>
 
 ## Not enough data
 - <rule>: <what is missing>
@@ -71,6 +72,10 @@ Summarise the proposals and stop until the user picks which to apply.
 ## 5. Apply the approved ones
 
 1. Create `kit-improve-<date>` from the default branch. Check `git status` first.
-2. Apply each approved change. A change to a hook, the guard or a check gets a test; run the kit's tests.
-3. Append one entry per change to `reports/improvements.md`: `- <date> | <change> | <metric> | <value before>`.
-4. Commit, one change per commit. Ask before `git push` and before opening the PR.
+2. Apply each approved change, one commit each. A change to a hook, the guard or a check gets a test; run the kit's tests.
+3. Gate each change to a skill's text or to `KIT_ROUTE_*` before it stays. The runs that prompted the proposal are not evidence that it works, so judge it on a fixed set it was not written from: the kit's live run for that skill (`tests/<skill>/run.sh`: `fix-bug`, `verify`, `onboard`, `routing`), on the same model. Tell the user the cost first, since the runs spend tokens. Run it on the default branch before the change and on `kit-improve-<date>` after, and keep both outputs.
+   - Keep the change only if every `ok:` line from before is still `ok:` after. Rerun a `FAIL:` once before counting it.
+   - On a regression, revert that commit and log it as `rejected`.
+   - A skill with no live run is `ungated`: apply it only on the user's explicit yes, and log it as `ungated`.
+4. Append one entry per change to `reports/improvements.md`: `- <date> | <change> | <metric> | <value before> | gate: passed / rejected / ungated`.
+5. Ask before `git push` and before opening the PR.
